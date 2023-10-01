@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ez.gw.message.model.MessageDAO">
+	<insert id="insertMessage" parameterType="messageVo">
+		<selectKey keyProperty="no" resultType="int" order="BEFORE">
+			select message_seq.nextval from dual
+		</selectKey>
+		insert into message(no,reader,message_no)
+		values(#{no},#{reader},#{messageNo})
+	</insert>
+	
+	<select id="searchDeleteMessage" parameterType="messageViewVo" resultType="int">
+		select count(*) from messageView 
+	    where reader = #{empNo}
+	    and message_no = #{messageNo}
+	    and delflag='N'
+	</select>
+	
+	<update id="updateDelFlag" parameterType="messageViewVo">
+		update message
+		set delflag='Y'
+		where reader=#{empNo}
+		and message_no=#{messageNo}
+	</update>
+	
+	<delete id="deleteMessage" parameterType="messageViewVo">
+		delete from message
+		where reader=#{empNo}
+		and message_no=#{messageNo}
+	</delete>
+	
+	<select id="newMessage" parameterType="int">
+		select count(*) from messageView
+		where reader=#{reader} 
+		and read_date is null
+		and reader_delflag='N'
+	</select>
+
+</mapper>

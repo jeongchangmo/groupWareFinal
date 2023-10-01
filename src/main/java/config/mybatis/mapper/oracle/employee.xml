@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ez.gw.employee.model.EmployeeDAO">
+	<sql id="searchWhere">
+		<where>
+			<if test="searchKeyword!=null and searchKeyword!=''">
+	   	 		${searchCondition} LIKE '%'|| #{searchKeyword} ||'%'
+	      	</if>
+	    </where>
+	</sql>
+	
+	<select id="selectByEmpNo" parameterType="int" resultType="employeeVo">
+		select * from employee
+		where emp_no=#{empNo}
+		order by position_no desc
+	</select>
+	
+	<select id="selectAllEmp" resultType="map">
+		select * from organizationchartview
+		where retiredate is null
+		order by position_rank desc
+	</select>
+	
+	<select id="selectPwd" resultType="string" parameterType="int">
+		select pwd from employee 
+		where emp_no=#{empNo}
+	</select>
+	
+	<select id="selctAuthority" parameterType="int" resultType="string">
+		select authority 
+		from employee
+		where emp_no=#{empNo}
+	</select>
+	
+	<select id="getNextSequenceValue" resultType="int">
+	    select EMPLOYEE_SEQ.nextval from dual
+	</select>
+	<insert id="insertEmp" parameterType="employeeVo">
+		insert into employee(emp_no, name, ename, jumin, email, pwd, extension_no, tel, address, 
+			addressdetail, hiredate, authority, annual_salary, image, position_no, dept_no)
+		values(#{combinedEmpNoInt},#{name},#{ename},#{jumin,jdbcType=VARCHAR},
+			#{email},#{pwd},#{extensionNo},#{tel},#{address},#{addressdetail},
+			#{hiredate},#{authority},#{annualSalary},#{image},#{positionNo},#{deptNo})
+	</insert>
+	
+	
+	<select id="selectSearchEmp" parameterType="searchVo" resultType="map">
+		select *
+		from
+		(
+		    select rownum as rnum, A.*
+		    from
+		    (
+		       select * from organizationChartView
+				<if test="searchKeyword!=null and searchKeyword!=''">
+					where name like '%'|| #{searchKeyword} ||'%'
+					or emp_no like '%'|| #{searchKeyword} ||'%'
+					or dept_name like '%'|| #{searchKeyword} ||'%'
+					or position_name like '%'|| #{searchKeyword} ||'%'
+					and retiredate is null
+				</if>
+				order by position_rank desc, dept_name asc
+		    )A
+		)
+	<![CDATA[
+		where rnum > #{firstRecordIndex}
+		and rnum <=  #{firstRecordIndex}+ #{recordCountPerPage}
+		]]>
+	</select>		
+	
+	<select id="gTRSearchEmp" parameterType="searchVo">
+		select count(*) from organizationChartView
+		<if test="searchKeyword!=null and searchKeyword!=''">
+			where name like '%'|| #{searchKeyword} ||'%'
+			or emp_no like '%'|| #{searchKeyword} ||'%'
+			or dept_name like '%'|| #{searchKeyword} ||'%'
+			or position_name like '%'|| #{searchKeyword} ||'%'
+			and retiredate is null
+		</if>
+		order by position_rank desc, dept_no asc
+	</select>
+	
+	<select id="selectSerachEmp2" parameterType="searchVo" resultType="map">
+		select *
+		from
+		(
+			select rownum as rnum, A.*
+			from
+			(
+				select * from organizationChartView
+				where retiredate is null
+				<if test="searchKeyword!=null and searchKeyword!=''">
+	   	 		and ${searchCondition} LIKE '%'|| #{searchKeyword} ||'%'
+	      		</if>
+				order by position_rank desc, dept_no asc
+			)A
+		)
+		<![CDATA[
+		where rnum > #{firstRecordIndex}
+		and rnum <=  #{firstRecordIndex}+ #{recordCountPerPage}
+		]]>
+	</select>
+	
+	<select id="getTotalRecord" parameterType="searchVo" resultType="int">
+		select count(*) from organizationChartView
+		where retiredate is null
+		<if test="searchKeyword!=null and searchKeyword!=''">
+ 	 	and ${searchCondition} LIKE '%'|| #{searchKeyword} ||'%'
+    	</if>
+       	order by position_rank desc, position_name
+	</select>
+	
+	<select id="selEmpExportExcel" resultType="map">
+		select * from organizationChartView
+		where retiredate is null
+		order by position_rank desc, dept_no asc
+	</select>
+	
+	<select id="selectEmpByEmpNo" parameterType="int" resultType="map">
+		select * from organizationChartView
+		where emp_no=#{empNo}
+	</select>
+	
+	<update id="updateEmpInfo" parameterType="employeeVo">
+    update employee
+    set address=#{address}, addressdetail=#{addressdetail},
+        tel=#{tel}, email=#{email}, married=#{married}
+    where emp_no=#{empNo}
+	</update>
+	
+	<update id="updateEmpRetiredate" parameterType="employeeVo">
+		update employee
+		set retiredate=#{retiredate}
+		where emp_no=#{empNo}
+	</update>
+	
+	<update id="updateEmpPwd" parameterType="employeeVo">
+	    update employee
+	    set pwd=#{pwd}
+	    where emp_no=#{empNo}
+	</update>
+	
+	<update id="updateEmpAdmin" parameterType="employeeVo">
+		update employee
+		set name=#{name}, ename=#{ename}, jumin=#{jumin}, dept_no=#{deptNo},
+			position_no=#{positionNo}, authority=#{authority}, extension_no=#{extensionNo},
+			tel=#{tel}, address=#{address}, addressdetail=#{addressdetail}, 
+			annual_salary=#{annualSalary}, email=#{email}
+		<if test="image!=null and image!=''">
+		, image=#{image}
+		</if>	
+		where emp_no=#{empNo}
+	</update>
+	
+	<select id="selectEmpByName" parameterType="string">
+		select emp_no from employee where name = #{name}
+	</select>
+	
+	<select id="selectNameByEmpNo" parameterType="int" resultType="string">
+		select name from employee where emp_no = #{empNo}
+	</select>
+	
+	<select id="selectEmail" parameterType="int" resultType="string">
+		select email 
+		from employee
+		where emp_no=#{empNo}
+	</select>
+	
+	<select id="countManager" parameterType="string">
+		select count(*)from employee where name= #{name}
+	</select>
+	
+	<select id="findInfoCheck" resultType="int" parameterType="employeeVo">
+		select count(*) from employee
+		where emp_no=#{empNo} and email=#{email}
+	</select>
+	
+	<update id="findPwd" parameterType="employeeVo">
+		update employee
+	    set pwd=#{pwd}
+	    where emp_no=#{empNo} and email=#{email}
+	</update>
+	
+	<select id="selectRetire" resultType="int">
+		select emp_No from employee
+		where retireDate is not null
+	</select>
+	
+	<select id="selectByClubNo" parameterType="int" resultType="Integer">
+		select club_No from employee
+		where emp_No=#{empNo}	
+	</select>
+	
+	<select id="selEmpCountByDeptName" resultType="map">
+		select distinct dept_name,dept_no,count(*) as cnt
+		from organizationchartview
+		where retiredate is null
+		group by dept_name,dept_no
+		order by dept_no asc
+	</select>
+	
+	<update id="createClub" parameterType="employeeVo" >
+		update employee
+		set club_no=#{clubNo}
+		where emp_no=#{empNo} 
+	</update>
+	
+	<select id="selectRetireCount" resultType="int">
+		select count(*) from employee
+		where retiredate like '%' ||'2023'|| '%'
+		and retiredate is not null
+	</select>
+	
+	<select id="selectAllEmployeeCount" resultType="int">
+		select count(*) from employee
+	</select>
+	
+	<select id="selectAvgSalary" resultType="int">
+		select trunc(avg(annual_salary)) from employee
+	</select>
+	
+	<select id="selectHiredateCount" resultType="int">
+		select count(*) from employee
+		where hiredate like '%2023%'
+		and hiredate is not null
+	</select>
+	
+</mapper>

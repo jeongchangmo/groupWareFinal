@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ez.gw.club.model.ClubDAO">
+	
+	<insert id="insertClub" parameterType="clubVo">
+		<selectKey keyProperty="clubNo" order="BEFORE" resultType="int">
+			select CLUB_SEQ.NEXTVAL from dual
+		</selectKey>
+		insert into CLUB(CLUB_NO, MANAGER, MEM_LIMIT, TITLE, INTRODUCE, SECFLAG, MEM_LIMITFLAG, EMP_NO)
+		values(#{clubNo},#{manager},#{memLimit} ,#{title},#{introduce},#{secflag},#{memLimitflag},#{empNo})
+	</insert>
+	
+	<select id="selectClub" parameterType="searchVo" resultType="map">
+		select * from club
+		<if test="searchKeyword!=null and searchKeyword!=''">
+			where ${searchCondition} like '%' || #{searchKeyword} ||'%'
+		</if>
+		order by regDate desc
+	</select>
+	
+	<select id="selectByClubNo" parameterType="int" resultType="clubVo">
+		select * from club
+		where CLUB_NO=#{clubNo}
+	</select>
+	
+	<delete id="deleteClub" parameterType="int">
+		delete from club
+		where CLUB_NO=#{clubNo}
+	</delete>
+	
+	<update id="updateClub" parameterType="clubVo">
+		update club
+		set MEM_LIMIT=#{memLimit},TITLE=#{title},INTRODUCE=#{introduce},MEM_LIMITFLAG=#{memLimitflag}
+		where CLUB_NO=#{clubNo}
+	</update>
+	
+	<update id="joinClub" parameterType="int">
+		update employee
+		set club_no=#{clubNo}, merchant_no=#{merchantNo}
+		where emp_no=#{empNo}
+	</update>
+
+	<update id="outClub" parameterType="int">
+		update employee
+		set club_no=null, merchant_no=null
+		where emp_no=#{empNo}
+	</update>
+	
+	<select id="adminClubList" resultType="map" parameterType="searchVo">
+		select * from ADMINCLUBVIEW
+		 where club_no is not null
+		<if test="searchKeyword!=null and searchKeyword!=''">
+			and ${searchCondition} like '%' || #{searchKeyword} ||'%'
+		</if>
+		order by regdate desc
+	</select>
+	
+	<select id="clubCount" resultType="int" parameterType="int">
+		select count(*) from employee
+		where club_no=#{clubNo}
+	</select>
+	
+	<select id="regiClub" parameterType="int">
+		select count(club_no) from employee
+		where emp_no =#{empNo}
+	</select>
+</mapper>
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ez.gw.secondhandTrade.model.SecondHandTradeDAO">
+	<insert id="insertMarket" parameterType="secondHandTradeVO">
+		<selectKey keyProperty="tradeNo" order="BEFORE" resultType="int">
+			select secondhand_trade_seq.nextval from dual
+		</selectKey>
+		insert into secondhand_trade(trade_no, emp_no, title, product, price, discription, boardlist_no)
+		values(#{tradeNo}, #{empNo}, #{title}, #{product}, #{price}, #{discription}, 100)
+	</insert>
+	
+	<select id="selectAllMarket" parameterType="searchSellVo" resultType="map">
+    SELECT *
+    FROM (
+        SELECT ROWNUM AS RNUM, A.*
+        FROM (
+            SELECT *
+            FROM secondmarketview
+            <where>
+            <if test="searchKeyword!=null and searchKeyword!=''">
+                <choose>
+                    <when test="searchCondition == 'total'">
+                        and (title LIKE '%' || #{searchKeyword} || '%' OR NAME LIKE '%' || #{searchkeyword} || '%' OR discription LIKE '%' || #{searchKeyword} || '%')
+                    </when>
+                    <otherwise>
+                        and ${searchCondition} LIKE '%' || #{searchKeyword} || '%'
+                    </otherwise>
+                </choose>
+            </if>
+            <if test = "checkSelflag == true">
+            	and selFlag = 'N'
+            </if>
+            </where>
+            ORDER BY trade_no DESC
+        ) A
+    ) 
+	    <![CDATA[
+	    WHERE RNUM > #{firstRecordIndex} 
+	    AND RNUM <= #{firstRecordIndex} + #{recordCountPerPage}
+	    ]]>
+	</select>
+	
+	<select id="selectMarketByNo" parameterType="int" resultType="map">
+		select * from secondmarketview
+		where trade_no = #{tradeNo}
+	</select>
+	
+	<update id="updateReadCount" parameterType="int" >
+		update secondhand_trade set readcount = readCount + 1
+		where trade_no = #{tradeNo}
+	</update>
+	
+	<select id="getTotalRecord" parameterType="searchSellVo" resultType="int">
+		 select count(*)
+    	from secondmarketview
+    <where>
+        <if test="searchKeyword!=null and searchKeyword!=''">
+            <choose>
+                <when test="searchCondition == 'total'">
+                    title like '%' || #{searchKeyword} || '%' OR NAME LIKE '%' || #{searchkeyword} || '%' or discription like '%' || #{searchKeyword} || '%'
+                </when>
+                <otherwise>
+                    ${searchCondition} like '%' || #{searchKeyword} || '%'
+                </otherwise>
+            </choose>
+        </if>
+        <if test = "checkSelflag == true">
+            	and selFlag = 'N'
+        </if>
+    </where>
+	</select>
+	
+	<update id="updateMarket" parameterType="secondHandTradeVo" >
+		update secondhand_trade
+		set title = #{title}, product = #{product}, price= #{price}, discription=#{discription}
+		<if test="selFlag!=null and selFlag!=''">
+		,selflag=#{selFlag}
+		</if>
+		where trade_no=#{tradeNo}
+	</update>
+	
+	<delete id="deleteMarket">
+		delete from secondhand_trade
+		where trade_no =#{tradeNo}
+	</delete>
+	
+	<update id="like" parameterType="int">
+		update secondhand_trade
+		set likecount = likecount + 1
+		where trade_no = #{tradeNo}
+	</update>
+	
+	<update id="dislike" parameterType="int">
+		update secondhand_trade
+		set likecount = likecount - 1
+		where trade_no = #{tradeNo}
+	</update>
+	
+	<select id="showLike">
+		select likecount from secondhand_trade
+		where trade_no = #{tradeNo}
+	</select>
+</mapper>

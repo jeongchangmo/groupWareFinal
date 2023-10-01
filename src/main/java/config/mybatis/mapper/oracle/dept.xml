@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ez.gw.dept.model.DeptDAO">
+	<select id="deptByNo" parameterType="int" resultType="deptVo">
+		select * from dept
+		where dept_no=#{deptNo}
+	</select>
+	<select id="selectAllDept" resultType="deptVo">
+		select * from dept
+	</select>
+	
+	<select id="selectAllDept2" parameterType="deptVo" resultMap="empListResultMap">
+		select * from dept order by dept_no asc
+	</select>
+	
+	<select id="selectEmpByDeptNo" parameterType="int" resultType="map">
+        select * from organizationChartView
+        where dept_no = #{deptNo}
+        and retiredate is null
+        order by position_rank desc
+    </select>
+	
+	<resultMap type="deptAllVo" id="empListResultMap">
+		<association property="deptVo" column="dept_No" javaType="deptVo">
+			<id property="deptNo" column="dept_no" jdbcType="BIGINT"/>
+			<result property="name" column="name" jdbcType="VARCHAR"/>
+			<result property="manager" column="manager" jdbcType="BIGINT"/>
+			<result property="upperDept" column="upper_dept" jdbcType="BIGINT"/>
+			<result property="deptLevel" column="dept_level" jdbcType="BIGINT"/>
+		</association>
+		<collection property="empList" javaType="ArrayList" ofType="map" column="dept_No" select="selectEmpByDeptNo">
+		</collection>
+	</resultMap>
+	
+	<insert id="insertDept" parameterType="deptVo">
+		<selectKey keyProperty="deptNo" order="BEFORE" resultType="int">
+			select DEPT_SEQ.nextval from dual
+		</selectKey>
+		insert into dept(dept_no, name, manager, upper_dept, dept_level)
+		values(#{deptNo},#{name},#{manager},#{upperDept},#{deptLevel})
+	</insert>
+	
+	<select id="selectManager" resultType="map">
+		select * from organizationchartview
+		where position_rank>=7
+	</select>
+	
+	<select id="checkDeptName" parameterType="string" resultType="int">
+		select count(*) from dept where name=#{name}
+	</select>
+	
+	<update id="updateDept" parameterType="deptVo">
+		update dept
+		set name=#{name},manager=#{manager},upper_dept=#{upperDept},
+		dept_level=#{deptLevel}
+		where dept_no=#{deptNo}
+	</update>
+	
+	<select id="deptEmpCount" parameterType="int">
+		select count(*) from organizationchartview where dept_no=#{deptNo} and retiredate is null
+	</select>
+
+	<delete id="deleteDept" parameterType="int">
+		delete dept where dept_no=#{deptNo}
+	</delete>
+	
+</mapper>

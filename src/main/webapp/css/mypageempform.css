@@ -1,0 +1,160 @@
+@charset "UTF-8";
+/* mypageempform.css */
+.mypageemplabel{
+	float: left;
+	margin: 0px -20px 0px 20px;
+}
+.mypagespan{
+	display: flex;
+	grid-template-columns: auto 20px auto;
+}
+.mypagehyphen{
+	text-align: center; 
+	margin: 0 5px;
+}
+.mypageempdiv{
+	text-align: right;
+}
+.mypageempdiv1{
+	margin: 0 0 0 5px;
+}
+.mypageempdiv2{
+	margin: 0 0 0 25px;
+}
+.mypageempdiv3{
+	margin: 0 5px 0 33px;
+}
+.mypageempdiv4{
+	margin: 0 5px 0 38px;
+}
+.mypageempdiv5{
+	margin: 0 5px 0 54px;
+}
+.mypageempdiv6{
+	margin: 0 5px 0 71px;
+}
+.mypageempborder{
+	border-color: #eee;
+	border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+.mypageempsel{
+	height: 35px;
+	margin: 0px -8px 0px 8px;
+}
+.mypageempdiv7{
+	margin: 13px 0px 0px -25px;
+}
+.mypageemptr{
+	text-align: center; 
+	color: black;
+}
+.mypageempspan{
+	font-size: 17px;
+}
+.mypageempdiv8{
+	position: absolute;
+	right: 60px;
+	top: 60px;
+	width: 170px;
+	height: 200px;
+	border: 1px solid #eee;
+    border-radius: 8px;
+}
+.mypageempdiv8 img {
+	width: 100%;
+	height: 100%;
+	padding: 0.25rem;
+}
+#organization-chart{
+	margin: 15px 0 0 15px;
+}
+.mypageempdiv10{
+	margin:0 0 0 108px;
+}
+.mypageempdiv11 {
+  overflow: hidden; 
+}
+.mypageempdiv11 img{
+ max-width: 100%; 
+ height: auto;
+}
+.mypageempdiv12 {
+    margin: 0 5px 0 0px;
+}
+.mypageempbtncss{
+	border: none;
+	background-color: white;
+}
+.mypageempdiv13{
+    margin: 15px 0 15px 15px;
+}
+.mypageempbtncss2{
+    font-size: 20px;
+    border-radius: 5px;
+    padding: 5px 10px 5px 10px;
+    border: 1px solid #c1c1c1;
+}
+.mypageempbtncss2:hover {
+    background-color: #e9e9e9; /* 호버 시 배경색 변경 */
+}
+#prevPage, #curPage, #otherPage, #nextPage{
+    padding: 5px 5px 5px 5px;
+    font-size: 20px;
+}
+#prevPage, #nextPage{
+	border: 1px solid#e9e9e9;
+	border-radius: 5px;
+
+}
+#curPage, #otherPage {
+    border: 1px solid #e9e9e9;
+    border-radius: 5px;
+    margin: 2px;
+}
+#otherPage {
+    padding: 5px 10px 5px 13px;
+    color: black;
+}
+#curPage {
+    padding: 5px 10px 5px 10px;
+    font-weight: bold;
+    color: dodgerblue;
+    background-color: whitesmoke;
+}
+#prevPage {
+    margin: 0px 7px 0 0px;
+}
+#nextPage {
+    margin: 0 0 0 4px;
+}    
+.mypageempdiv14 {
+    margin: 0 0 0 60px;
+}
+#mypagea{
+	text-decoration: none;
+	color:black;
+}
+.mypageempdiv15 {
+    margin: 0 0 0 15px;
+}
+.mypageempdiv16 {
+    margin: 0 0px 0 -21px;
+}
+.mypageempdiv18{
+	margin: 50px 150px 50px 310px;
+}
+.dept-board-link {
+  text-decoration: none;
+  color: #5e6e82;
+  display: inline-block;
+  padding: 10px;
+  font-weight: bold;
+  transition: color 0.3s, background-color 0.3s; 
+}
+.dept-board-link:hover {
+   color: rgb(64, 0, 64);
+   background-color:#eff2f8;
+}

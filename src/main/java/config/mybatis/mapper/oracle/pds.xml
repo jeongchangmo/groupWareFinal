@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ez.gw.pds.model.PdsDAO">
+	<insert id="insertPds" parameterType="boardVo">
+		<selectKey keyProperty="boardNo" order="BEFORE" resultType="int">
+			select board_seq.nextval from dual
+		</selectKey>
+			
+		insert into board(board_no, emp_no, boardList_no, title, content)
+		values(#{boardNo}, #{empNo}, 3000, #{title}, #{content})
+	</insert>
+	
+	<select id="selectPdsAll" resultType="map" parameterType="searchVo">
+	    select *
+	    from
+	    (
+	        select rownum as RNUM, A.* from
+	        (
+	            select 
+	            boardList_no, board_no, emp_no, name, title, content, readcount, regdate, deptname
+	            from pdsListview
+	            where boardList_no=3000
+	            <if test="searchKeyword!=null and searchKeyword!=''">
+	                <choose>
+	                    <when test="searchCondition == 'total'">
+	                        and (title like '%' || #{searchKeyword} || '%' or content like '%' || #{searchKeyword} || '%')
+	                    </when>
+	                    <otherwise>
+	                        and ${searchCondition} like '%' || #{searchKeyword} || '%'
+	                    </otherwise>
+	                </choose>
+	            </if>
+	            order by board_no desc
+	        ) A
+	    )
+	    <![CDATA[
+	    where RNUM > #{firstRecordIndex} 
+	    and RNUM <= #{firstRecordIndex} + #{recordCountPerPage}
+	    ]]>
+	</select>
+
+	<select id="selectAdminPdsAll" parameterType="searchVo" resultType="map">
+		select *
+		from
+		(
+			select rownum as rnum, A.*
+			from
+			(
+				select * from pdsview
+				<if test="searchKeyword!=null and searchKeyword!=''">
+					where ${searchCondition} like '%' || #{searchKeyword} ||'%'
+				</if>
+				order by pds_no desc
+			)A
+		)
+		<![CDATA[
+			where rnum > #{firstRecordIndex}
+			and rnum <=  #{firstRecordIndex}+ #{recordCountPerPage}
+		]]>		
+	</select>
+	
+	<select id="getAdminTotalFile" parameterType="searchVo" resultType="int">
+	    select count(*)
+	    from pdsview
+		<if test="searchKeyword!=null and searchKeyword!=''">
+			where ${searchCondition} like '%' || #{searchKeyword} ||'%'
+		</if>
+	</select>
+	
+	<select id="getTotalRecord" parameterType="searchVo" resultType="int">
+	    select count(*)
+	    from pdsListview
+	    where boardList_no = 3000
+	    <if test="searchKeyword!=null and searchKeyword!=''">
+	        <choose>
+	            <when test="searchCondition == 'total'">
+	                and (title like '%' || #{searchKeyword} || '%' or content like '%' || #{searchKeyword} || '%')
+	            </when>
+	            <otherwise>
+	                and ${searchCondition} like '%' || #{searchKeyword} || '%'
+	            </otherwise>
+	        </choose>
+	    </if>
+	</select>
+	
+	
+	<select id="selectPds" parameterType="int" resultType="map">
+		select * from pdsListView
+		where board_no=#{boardNo} and boardList_no = 3000
+	</select>
+	
+	<update id="updatePds" parameterType="boardVo">
+		update board
+		set title=#{title}, content=#{content}
+		where boardList_no=3000 and board_No=#{boardNo}
+	</update>
+	
+	<delete id="deletePds" parameterType="int">
+		delete from board
+		where board_No=#{boardNo}
+	</delete>
+	
+	<delete id="deletePdsFile" parameterType="int">
+		delete pds
+		where boardList_no=3000 and board_no=#{boardNo}
+	</delete>
+	
+	<delete id="editPdsFile" parameterType="map">
+		delete pds
+		where boardList_no=3000 and board_no=#{boardNo}
+		<if test="oldFileName!=null and oldFileName!=''">
+			and fileName=#{oldFileName}
+		</if>
+	</delete>
+	
+	<insert id="insertFiles" parameterType="pdsVo">
+		<selectKey keyProperty="pdsNo" order="BEFORE" resultType="int">
+			select pds_seq.nextval from dual
+		</selectKey>
+		insert into pds(pds_no, path, fileName, fileSize, originalfileName, file_extension,
+			 boardList_no, board_no)
+		values(#{pdsNo}, #{path}, #{fileName}, #{fileSize}, #{originalFileName}, #{fileExtension},
+			#{boardListNo}, #{boardNo})
+	</insert>
+	
+	<select id="selectFilesByBoardNo" parameterType="int" resultType="pdsVo">
+		select * from pds
+		where boardList_no=3000 and board_no=#{boardNo}
+	</select>
+	
+	<update id="updateDownloadCount" parameterType="int">
+		update pds
+		set downloadCount = downloadCount + 1
+		where board_no=#{boardNo}
+	</update>
+	
+	<select id="selectIsFile" parameterType="int" resultType="int">
+		select count(*) from pds
+		where board_no = #{boardNo}
+	</select>
+	
+	<select id="selFilesByNotice" parameterType="int" resultType="pdsVo">
+		select * from pds
+		where boardList_no=2000 and board_no=#{boardNo}
+	</select>
+	
+	<delete id="editNoticeFile" parameterType="int">
+		delete pds
+		where boardList_no=2000 and pds_no=#{pdsNo}
+	</delete>
+	
+	<delete id="deleteAdminFile" parameterType="int">
+		delete pds
+		where pds_no=#{pdsNo}
+	</delete>
+	
+	<insert id="insertPdsByAnonymous" parameterType="pdsVo">
+		<selectKey keyProperty="pdsNo" order="BEFORE" resultType="int">
+			select pds_seq.nextval from dual
+		</selectKey>
+		insert into pds(pds_no, fileName, originalfileName, boardList_no, board_no)
+		values(#{pdsNo}, #{fileName}, #{originalFileName}, 5000, #{boardNo})
+	</insert>
+	
+	<select id="select24AnonymousImage" resultType="pdsVo">
+		select * from pds
+		where boardlist_no = 5000
+		and regdate>= sysdate -1
+		order by regdate desc
+	</select>
+	
+	<delete id="deleteAnonymousImg" parameterType="pdsVo">
+		delete from pds
+		where board_no=#{boardNo}
+		and boardList_no=5000
+		and filename=#{fileName}
+	</delete>
+	
+	<insert id="clubFiles" parameterType="pdsVo">
+		<selectKey keyProperty="pdsNo" order="BEFORE" resultType="int">
+			select pds_seq.nextval from dual
+		</selectKey>
+		insert into pds(pds_no, path, fileName, fileSize, originalfileName, file_extension,
+			 boardList_no, club_board_no ,board_no)
+		values(#{pdsNo}, #{path}, #{fileName}, #{fileSize}, #{originalFileName}, #{fileExtension},
+			200, #{clubBoardNo}, 0)
+	</insert>
+	
+	<select id="selFilesByDeptBoard" parameterType="boardVo" resultType="pdsVo">
+		select * from pds
+		where boardList_no=#{boardlistNo} and board_no=#{boardNo}
+	</select>
+	
+	<delete id="editDeptBoardFile" parameterType="int">
+		delete pds
+		where pds_no=#{pdsNo}
+	</delete>
+	
+	<select id="selectPdsNew5" resultType="boardVo">
+		select *
+		from
+		(
+		    select * from board
+		    where boardList_no = 3000
+		    order by regdate desc
+		)
+		<![CDATA[
+			where rownum<=5
+		]]>
+	</select>
+	
+</mapper>

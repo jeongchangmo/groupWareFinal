@@ -1,0 +1,174 @@
+@charset "UTF-8";
+/* adminempform.css */
+.admindefault {
+	color: black;
+    background-color: white;
+}
+.adminspan{
+	display: flex;
+	grid-template-columns: auto 20px auto;
+}
+.adminhyphen{
+	text-align: center; 
+	margin: 0 5px;
+}
+.adminempdiv{
+	text-align: right;
+}
+.adminempdiv1{
+	margin: 0 5px 0 5px;
+}
+.adminempdiv2{
+	margin: 0 0 0 25px;
+}
+.adminempdiv3{
+	margin: 0 5px 0 33px;
+}
+.adminempdiv4{
+	margin: 0 5px 0 38px;
+}
+.adminempdiv5{
+	margin: 0 5px 0 54px;
+}
+.adminempdiv6{
+	margin: 0 5px 0 71px;
+}
+.adminemplabel {
+    margin: 0px -20px 0px 20px;
+}
+.adminempborder{
+	border: 1px solid black;
+	border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+.adminempsel{
+	height: 35px;
+	margin: 0px -8px 0px 8px;
+}
+.adminempdiv7{
+	margin: 13px 0px 0px -25px;
+}
+.adminemptr{
+	text-align: center; 
+	color: black;
+}
+.adminempthead{
+	background-color: #101726;
+}
+.adminempdiv8{
+	position: absolute;
+	right: 60px;
+	top: 60px;
+	width: 170px;
+	height: 200px;
+	border: 1px solid#101726;
+    border-radius: 8px;
+}
+.adminempdiv8 img{
+	width: 100%;
+	height: 100%;
+	padding: 0.25rem;
+}
+.adminempthead tr th{
+	color:white;
+}
+.adminempdiv9 {
+    margin: 10px 0px 0 20px;
+}
+.adminempdiv9 a{
+    margin-top: 5px;
+}
+.adminempdiv10 {
+    margin: 15px 0 0 15px;
+}
+.adminempspan{
+	margin: 5px 0 0 15px;
+}
+.adminempdiv11 {
+    margin: 0 7px 0 -7px;
+}
+.adminempdiv12 {
+    margin: 0 0 0 15px;
+}
+.adminempdiv13 {
+    margin: 0 0 15px 0px;
+}
+#admina{
+	text-decoration: none;
+}
+.admina{
+	color: white;
+}
+#admina2{
+	text-decoration: none;
+	color: black;
+}
+.adminempdiv14 {
+    margin: 4px 0 0 120px;
+}
+.ck-editor__editable {
+    height: 300px;
+}
+.adminempdiv15 {
+  overflow: hidden; 
+}
+.adminempdiv15 img{
+ max-width: 100%; 
+ height: auto;
+}
+.adminempdiv16{
+	margin:0 0 0 108px;
+}
+#sample4_roadAddress, #sample4_detailAddress{
+	margin: 5px 0 0 0;
+}
+.adminempdiv17 {
+    margin: 0 5px 0 0px;
+}
+.adminempbtncss{
+	border: none;
+	background-color: white;
+}
+#prevPage, #curPage, #otherPage, #nextPage{
+    padding: 5px 5px 5px 5px;
+    font-size: 20px;
+}
+#prevPage, #nextPage{
+	border: 1px solid#101726;
+	border-radius: 5px;
+}
+#curPage, #otherPage {
+    border: 1px solid #101726;
+    border-radius: 5px;
+    margin: 2px;
+}
+#otherPage {
+    padding: 5px 10px 5px 13px;
+    color: black;
+}
+#curPage {
+    padding: 5px 10px 5px 10px;
+    font-weight: bold;
+    color: dodgerblue;
+    background-color: whitesmoke;
+}
+#prevPage {
+    margin: 0px 7px 0 0px;
+}
+#nextPage {
+    margin: 0 0 0 4px;
+}
+.adminempdiv18{
+	margin: 0 0 0 40px;
+}
+.adminempdiv19 {
+    margin: 0 5px 0 91px;
+}
+#selboardName{
+	margin: 11px 0 0 12px;
+}
+#boardLikeDiv, #commentFlagDiv, #uploadFlagDiv, #secflagDiv {
+    margin: 0 0 0 21px;
+}    

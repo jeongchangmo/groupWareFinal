@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ez.gw.messagecontent.model.MessageContentDAO">
+	<insert id="insertMessage" parameterType="messageContentVo">
+		<selectKey keyProperty="messageNo" resultType="int" order="BEFORE">
+			select message_content_seq.nextval from dual
+		</selectKey>
+		insert into message_content(message_no,message_content,emp_no)
+		values(#{messageNo},#{messageContent},#{empNo})
+	</insert>
+	
+	<select id="selectAllReader" parameterType="int" resultType="int">
+		select distinct reader from messageView m
+		where emp_no = #{empNo}
+	</select>
+	
+	<select id="selectLastMessageByReader" parameterType="messageViewVo" resultType="messageViewVo">
+		select rownum, A.* from
+		(
+		    select * from messageView m
+		    where ((emp_no =#{empNo} and delflag='N') or (reader=#{empNo} and reader_delflag='N'))
+	   		and (reader=#{reader} or emp_no =#{reader})
+		    order by send_date desc
+		)A
+		where rownum=1
+	</select>
+	
+	<select id="selectLastMessage" parameterType="int" resultType="messageViewVo">
+		select * from messageView m1
+		where (emp_no=#{empNo} or reader=#{empNo})
+		and send_date = (select max(m2.send_date) from messageView m2
+                		where ((m2.emp_no=m1.emp_no and m2.reader=m1.reader)
+                		or (m2.reader=m1.emp_no and m2.emp_no=m1.reader))
+                		and((m2.emp_no=#{empNo} and m2.delflag='N')
+                		or(m2.reader=#{empNo} and m2.reader_delflag='N')))
+		order by m1.send_date desc
+	</select>
+	
+	<select id="selectLastMessage5" parameterType="int" resultType="messageViewVo">
+		select * from messageView m1
+		where reader=#{empNo}
+		and send_date = (select max(m2.send_date) from messageView m2
+                		where m2.reader=#{empNo} and m2.emp_no=m1.emp_no
+                        and m2.reader_delflag='N')
+		order by m1.send_date desc
+	</select>
+	
+	<select id="selectAllMyMessage" parameterType="messageViewVo" resultType="messageViewVo">
+		select * from messageView 
+	    where (emp_no =#{empNo} or reader=#{empNo})
+	    and (reader=#{reader} or emp_no =#{reader})
+	    order by send_date
+	</select>
+	
+	<update id="updateReadDate" parameterType="messageViewVo">
+		update messageView
+		set read_date=sysdate
+		where emp_no =#{reader} and reader=#{empNo}
+		and read_date is null
+	</update>
+	
+	<update id="updateSendDelFlag" parameterType="messageViewVo">
+		update message_content
+		set delflag='Y'
+		where emp_no = #{empNo}
+		and message_no = #{messageNo}
+	</update>
+	
+	<select id="searchDeleteMessage" parameterType="messageViewVo" resultType="int">
+		select count(*) from messageView 
+	    where emp_no = #{empNo}
+	    and message_no = #{messageNo}
+	    and reader_delflag='N'
+	</select>
+	
+	<delete id="deleteMessage" parameterType="int">
+		delete from message_content
+		where message_no = #{messageNo}
+	</delete>
+	
+	<select id="searchSendMessageNo" parameterType="messageViewVo" resultType="int">
+		select message_no from messageView
+		where (emp_no = #{empNo} and reader = #{reader})
+	</select>
+	
+	<select id="searchReadMessageNo" parameterType="messageViewVo" resultType="int">
+		select message_no from messageView
+		where (reader = #{empNo} and emp_no = #{reader})
+	</select>
+
+</mapper>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ez.gw.reman.model.RemanDAO">
+	<insert id="insertOfficeProduct" parameterType="remanVo" >
+		<selectKey keyProperty="remanNo" order="BEFORE" resultType="int">
+			select reman_seq.nextval from dual
+		</selectKey>
+			insert into reman(reman_no, category, name, discription, state, emp_no, manager)
+			values(#{remanNo}, #{category}, #{name}, #{discription}, #{state}, #{empNo}, #{manager})
+	</insert>
+	
+	<select id="selectOfficeProductByCategory" parameterType="justSearchRemanVO" resultType="remanVo">
+		select * from reman 
+		where category = #{category} 
+		<if test="searchKeyword!=null and searchKeyword !=''">
+			and(
+			<choose>
+				<when test = "searchCondition == 'total'">
+					name like '%' || #{searchKeyword} || '%' or 
+					discription like '%' || #{searchKeyword} || '%' or 
+					manager like '%' || #{searchKeyword} || '%' or 
+					state like '%' || #{searchKeyword} || '%'
+				</when>
+				<otherwise>
+					${searchCondition} like '%' || #{searchKeyword} || '%'
+				</otherwise>
+			</choose>
+			)
+		</if>
+		order by reman_no
+	</select>
+	
+	<delete id="deleteReman" parameterType="int">
+		delete from reman where reman_no = #{remanNo}
+	</delete>
+	
+	<select id="selectRemanByNo" parameterType="int" resultType="remanVo">
+	 	select * from reman where reman_no = #{remanNo}
+	</select>
+	
+	<select id="selectAllReman" resultType="remanVo">
+		select * from reman
+	</select>
+	
+	<update id="updateReman" parameterType="remanVo">
+		update reman 
+		set category = #{category}, name = #{name}, discription = #{discription}, state = #{state}, manager = #{manager}
+		where reman_no = #{remanNo}
+	</update>
+	
+	<select id="staticReman" resultType="map" parameterType="map">
+		select * from reservationview
+		where category=#{category}
+		and substr(regdate, 1, 7) = #{regdate}
+	</select>
+</mapper>

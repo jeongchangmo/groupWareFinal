@@ -1,0 +1,18 @@
+@charset "UTF-8";
+
+h2{
+	text-align: center;
+}
+
+#document tr>td:first-child, #document tr>td:nth-child(3){
+	background-color: #D9E2F3;
+	text-align: center;
+}
+
+#document td{
+	border:black solid 1px;
+}
+
+div#mainTitle {
+    padding-top: 20px;
+}

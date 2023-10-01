@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ez.gw.deptagree.model.DeptagreeDAO">
+	<insert id="insertDeptAgree" parameterType="deptAgreeVo">
+		<selectKey keyProperty="agreementNo" resultType="int" order="BEFORE">
+			select deptagree_seq.nextval from dual
+		</selectKey>
+		insert into deptagree(agreement_no,confirm_document_no,dept_no)
+		values(#{agreementNo},#{confirmDocumentNo},#{deptNo})
+	</insert>
+	
+	<update id="updateDeptAgreeByReturn" parameterType="deptAgreeVo">
+		update deptagree
+		set deptagree_date=null,agreement_state=7,dept_no=#{deptNo}
+		where confirm_document_no=#{confirmDocumentNo}
+	</update>
+	
+	<select id="countByDocument" parameterType="string" resultType="int">
+		select count(*) from deptagree
+		where confirm_document_no=#{confirmDocumentNo}
+	</select>
+	
+	<update id="updateDeptAgree" parameterType="string">
+		update deptagree
+		set deptagree_date=sysdate,agreement_state=10
+		where confirm_document_no=#{confirmDocumentNo}
+	</update>
+	
+	<update id="returnDeptAgree" parameterType="string">
+		update deptagree
+		set deptagree_date=null,agreement_state=9
+		where confirm_document_no=#{confirmDocumentNo}
+	</update>
+	
+	<delete id="deleteDeptAgree" parameterType="string">
+		delete from deptagree
+		where confirm_document_no=#{confirmDocumentNo}
+	</delete>
+</mapper>

@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ez.gw.commute.model.CommuteDAO">
+	<sql id="searchAllCommute">
+		<where>
+			<if test="date1!=null and date1!='' and date2!=null and date2!=''">
+				<![CDATA[
+					trunc(to_date(work_in, 'yyyy-mm-dd hh24:mi:ss')) >= trunc(to_date(#{date1}, 'yyyy-mm-dd hh24:mi:ss')) 
+					and
+					trunc(to_date(work_in, 'yyyy-mm-dd hh24:mi:ss')) < trunc(to_date(#{date2}, 'yyyy-mm-dd hh24:mi:ss')) +1
+				]]>
+			</if>
+			
+ 			<if test="deptNo!=null and deptNo!=''">
+				and dept_no = #{deptNo}
+			</if> 
+			
+ 	       <if test="emp != null and emp.matches('^\\d+$')">
+		    and (emp_no = #{emp})
+			</if>
+			<if test="emp != null and !emp.matches('^\\d+$')">
+		    and (name like '%' || #{emp} || '%')
+			</if>
+		</where>
+	</sql>
+	
+
+	<select id="selectCommuteByEmpNo" parameterType="int"
+		resultType="commuteVo">
+		select * from commute
+		where emp_no=#{empNo}
+	</select>
+
+	<insert id="insertWorkIn" parameterType="int">
+		insert into commute(commute_no, work_in, commute_state, emp_no)
+		values(commute_seq.nextval, to_char(sysdate, 'yyyy-mm-dd hh24:mi:ss'),
+		0, #{empNo})
+	</insert>
+
+	<update id="updateWorkOut" parameterType="int">
+		UPDATE commute
+		SET work_out = TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mi:ss')
+		WHERE emp_no = #{empNo}
+		AND work_in IS NOT NULL
+		AND TO_CHAR(TO_DATE(work_in, 'yyyy-mm-dd hh24:mi:ss'), 'yyyy-mm-dd') =
+		TO_CHAR(SYSDATE, 'yyyy-mm-dd')
+	</update>
+
+	<select id="selectIsWorkIn" parameterType="int" resultType="int">
+		select count(*)
+		from commute
+		where work_in like '%' || to_char(sysdate,
+		'yyyy-mm-dd') || '%' and emp_no = #{empNo}
+	</select>
+
+	<select id="selectIsWorkOut" parameterType="int"
+		resultType="int">
+		select count(*)
+		from commute
+		where work_out like '%' ||
+		to_char(sysdate, 'yyyy-mm-dd') || '%' and emp_no = #{empNo}
+	</select>
+
+	<update id="updateCommuteState" parameterType="commuteVo">
+		UPDATE commute
+		SET
+		commute_state = 1
+		WHERE emp_no = #{empNo}
+		AND TO_DATE(work_in, 'YYYY-MM-DD HH24:MI:SS') >= TRUNC(SYSDATE)
+		<![CDATA[
+			AND TO_DATE(work_in, 'YYYY-MM-DD HH24:MI:SS') < TRUNC(SYSDATE) + 1
+		]]>
+	</update>
+
+	<update id="updateCommuteStateEalry" parameterType="int">
+		UPDATE commute
+		SET
+		commute_state = 2
+		WHERE emp_no = #{empNo}
+		AND TO_DATE(work_in, 'YYYY-MM-DD HH24:MI:SS') >= TRUNC(SYSDATE)
+		<![CDATA[
+			AND TO_DATE(work_in, 'YYYY-MM-DD HH24:MI:SS') < TRUNC(SYSDATE) + 1
+		]]>
+	</update>
+
+	<update id="updateCommuteStateTotal" parameterType="int">
+		UPDATE commute
+		SET
+		commute_state = 3
+		WHERE emp_no = #{empNo}
+		AND TO_DATE(work_in, 'YYYY-MM-DD HH24:MI:SS') >= TRUNC(SYSDATE)
+		<![CDATA[
+			AND TO_DATE(work_in, 'YYYY-MM-DD HH24:MI:SS') < TRUNC(SYSDATE) + 1
+		]]>
+	</update>
+
+	<select id="selectLateState" parameterType="int"
+		resultType="int">
+		select commute_state from commute
+		WHERE emp_no = #{empNo}
+		AND TO_DATE(work_in, 'YYYY-MM-DD HH24:MI:SS') >=
+		TRUNC(SYSDATE)
+	</select>
+
+	<!-- 지각 횟수 조회 -->
+	<select id="selectCommuteLateCount" parameterType="map"
+		resultType="int">
+		SELECT COUNT(*) FROM commute
+		WHERE emp_no = #{empNo}
+		AND SUBSTR(work_in, 1, 7) = #{date}
+		AND COMMUTE_STATE IN(1, 3)
+	</select>
+
+	<!-- 조퇴 횟수 조회 -->
+	<select id="selectCommuteEarlyleaveCount" parameterType="map"
+		resultType="int">
+		SELECT COUNT(*) FROM commute
+		WHERE emp_no = #{empNo}
+		AND SUBSTR(work_in, 1, 7) = #{date}
+		AND COMMUTE_STATE IN(2, 3)
+	</select>
+
+	<select id="selectCommuteAttendanceCount" parameterType="map"
+		resultType="int">
+		select count(*) from commute
+		where emp_no = #{empNo}
+		and
+		substr(work_in, 1, 7) = #{date}
+	</select>
+
+	<select id="selectCommuteMonthByEmpNo" parameterType="map"
+		resultType="map">
+		select * from commute
+		where emp_no=#{empNo}
+		and
+		substr(work_in, 1, 7) = #{date}
+	</select>
+
+
+
+	<!-- admin -->
+	<select id="selectAllCommute" parameterType="searchCommuteVO" resultType="map">
+		select *
+		from
+		(
+			select rownum as rnum, A.*
+			from
+			(	
+				select * from allcommuteview
+				<include refid="searchAllCommute"></include>
+				order by work_in desc
+			)A
+		)
+		<![CDATA[
+			where rnum > #{firstRecordIndex}
+			and rnum <=  #{firstRecordIndex}+ #{recordCountPerPage}
+		]]>		
+	</select>
+	
+	<select id="exelDownCommute" parameterType="searchCommuteVO" resultType="map">
+		select *
+		from
+		(
+			select rownum as rnum, A.*
+			from
+			(	
+				select * from allcommuteview
+				<include refid="searchAllCommute"></include>
+				order by work_in desc
+			)A
+		)
+	</select>
+	
+	<select id="getAllCommuteTotalCount" parameterType="searchCommuteVO" resultType="int">
+		select count(*) from allcommuteview
+		<include refid="searchAllCommute"></include>
+		order by work_in desc
+	</select>
+	
+	<!-- 전체 지각횟수 조회 -->
+	<select id="selectAllCommuteLateCount" parameterType="searchCommuteVO" resultType="int">
+		SELECT COUNT(*) FROM allcommuteview
+		<include refid="searchAllCommute"></include>
+		AND COMMUTE_STATE IN(1, 3)
+	</select>
+	
+	<!-- 전체 조퇴횟수 조회 -->
+	<select id="selectAllCommuteEalryLeaveCount" parameterType="searchCommuteVO" resultType="int">
+		SELECT COUNT(*) FROM allcommuteview
+		<include refid="searchAllCommute"></include>
+		AND COMMUTE_STATE IN(2, 3)
+	</select>
+	
+	<!-- 전체 출근횟수  -->
+	<select id="selectAllCommuteAttendanceCount" parameterType="searchCommuteVO"
+		resultType="int">
+		select count(*) from allcommuteview
+		<include refid="searchAllCommute"></include>
+	</select>
+	
+<update id="updateWorkTime" parameterType="commuteVo">
+    UPDATE commute
+    SET 
+        work_in = TO_CHAR(TO_DATE(work_in, 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD') || ' ' || #{editInTime} || ':00',
+        work_out = TO_CHAR(TO_DATE(work_in, 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD') || ' ' || #{editOutTime} || ':00',
+        commute_state = 
+            CASE
+            <![CDATA[
+                WHEN TO_NUMBER(TO_CHAR(TO_DATE(#{editInTime}, 'HH24:MI'), 'HH24')) >= 9 AND TO_NUMBER(TO_CHAR(TO_DATE(#{editOutTime}, 'HH24:MI'), 'HH24')) < 18 THEN 3
+                WHEN TO_NUMBER(TO_CHAR(TO_DATE(#{editInTime}, 'HH24:MI'), 'HH24')) >= 9 THEN 1
+                WHEN TO_NUMBER(TO_CHAR(TO_DATE(#{editOutTime}, 'HH24:MI'), 'HH24')) < 18 THEN 2
+                WHEN TO_NUMBER(TO_CHAR(TO_DATE(#{editInTime}, 'HH24:MI'), 'HH24')) < 9 AND TO_NUMBER(TO_CHAR(TO_DATE(#{editOutTime}, 'HH24:MI'), 'HH24')) > 18 THEN 0
+            	ELSE 0
+            END
+            ]]>
+    WHERE commute_no=#{commuteNo}
+</update>
+
+<select id="selectTodayCommute" parameterType="int" resultType="commuteVo">
+	select *
+	from commute
+	where emp_no = #{empNo}
+	and to_char(to_date(work_in, 'yyyy-mm-dd hh24:mi:ss'), 'yyyy-mm-dd') = to_char(sysdate, 'yyyy-mm-dd')
+</select>
+	
+
+</mapper>

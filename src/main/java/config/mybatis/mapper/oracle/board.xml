@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ez.gw.board.model.BoardDAO">
+	<sql id="searchWhere">
+		<where>
+			<if test="searchKeyword!=null and searchKeyword!=''">
+	   	 		${searchCondition} LIKE '%'|| #{searchKeyword} ||'%'
+	      	</if>
+	    </where>
+	</sql>
+	
+	<insert id="insertQna" parameterType="boardVo">
+		<selectKey keyProperty="boardNo" order="BEFORE" resultType="int">
+			select board_seq.nextval from dual
+		</selectKey>
+		
+		insert into board(board_no, emp_no, boardList_no, title, content)
+		values(#{boardNo}, #{empNo}, 1000, #{title}, #{content})
+	</insert>
+	
+	<insert id="insertAnonumous" parameterType="boardVo">
+		<selectKey keyProperty="boardNo" order="BEFORE" resultType="int">
+			select board_seq.nextval from dual
+		</selectKey>
+		
+		insert into board(board_no, emp_no, boardList_no, title, content)
+		values(#{boardNo}, #{empNo}, 5000, #{title}, #{content})
+	</insert>
+
+	<select id="selectQnaAll" parameterType="searchVo" resultType="map">
+		select *
+		from
+		(
+			select rownum as rnum, A.*
+			from
+			(
+				select * from qnaListView
+				<if test="searchKeyword!=null and searchKeyword!=''">
+					where ${searchCondition} like '%' || #{searchKeyword} ||'%'
+				</if>
+				order by board_no desc
+			)A
+		)
+		<![CDATA[
+			where rnum>#{firstRecordIndex}
+			and rnum<=#{firstRecordIndex} + #{recordCountPerPage}
+		]]>		
+	</select>
+	
+	<select id="selectAdminQnaAll" parameterType="searchVo" resultType="map">
+		select *
+		from
+		(
+			select rownum as rnum, A.*
+			from
+			(
+				select * from qnaListView
+				<if test="searchKeyword!=null and searchKeyword!=''">
+					where ${searchCondition} like '%' || #{searchKeyword} ||'%'
+				</if>
+				order by board_no desc
+			)A
+		)
+		<![CDATA[
+			where rnum>#{firstRecordIndex}
+			and rnum<=#{firstRecordIndex} + #{recordCountPerPage}
+		]]>		
+	</select>
+	
+	<select id="getQnaTotalCount" parameterType="searchVo" resultType="int">
+			select count(*) from qnaListView
+			<if test="searchKeyword!=null and searchKeyword!=''">
+				where ${searchCondition} like '%' || #{searchKeyword} ||'%'
+			</if>
+			order by board_no desc
+	</select>
+	
+	<select id="selectAdminQnaTotalRecord" parameterType="searchVo" resultType="int">
+		select count(*) from qnaListView
+		
+		<if test="searchKeyword!=null and searchKeyword!=''">
+			where ${searchCondition} like '%' || #{searchKeyword} ||'%'
+		</if>
+		order by board_no desc
+	</select>
+	
+	<select id="selectQna" parameterType="int" resultType="map">
+		select * from qnaListView
+		where board_no=#{boardNo} and boardList_no = 1000
+	</select>
+	
+	<update id="updateReadcount" parameterType="int">
+		update board
+		set readcount=readcount+1
+		where board_no=#{boardNo}
+	</update>
+	
+	<update id="updateQna" parameterType="boardVo">
+		update board
+		set title=#{title}, content=#{content}
+		where boardList_no=1000 and board_No=#{boardNo}
+	</update>
+	
+	<delete id="deleteQna" parameterType="int">
+		delete from board
+		where boardList_no=1000 and board_no=#{boardNo}
+	</delete>
+	
+	<insert id="insertNotice" parameterType="boardVo">
+		<selectKey keyProperty="boardNo" order="BEFORE" resultType="int">
+			select board_seq.nextval from dual
+		</selectKey>
+		
+		insert into board(board_no, emp_no, boardList_no, title, content)
+		values(#{boardNo}, #{empNo}, 2000, #{title}, #{content})
+	</insert>
+
+	<select id="selectNoticeAll" parameterType="searchVo">
+		select *
+		from
+		(
+			select rownum as rnum, A.*
+			from
+			(
+				select * from noticeListView
+				<if test="searchKeyword!=null and searchKeyword!=''">
+					where ${searchCondition} like '%' || #{searchKeyword} ||'%'
+					and delflag='N'
+				</if>
+				<if test="searchKeyword==null or searchKeyword==''">
+					where delflag='N'
+				</if>
+				order by board_no desc
+			)A
+		)
+		<![CDATA[
+		where rnum > #{firstRecordIndex}
+		and rnum <=  #{firstRecordIndex}+ #{recordCountPerPage}
+		]]>		
+	</select>
+	
+	<select id="gTRSearchNotice" parameterType="searchVo">
+		select count(*) from noticeListView
+		<if test="searchKeyword!=null and searchKeyword!=''">
+			where ${searchCondition} like '%' || #{searchKeyword} ||'%'
+			and delflag='N'
+		</if>
+		<if test="searchKeyword==null or searchKeyword==''">
+			where delflag='N'
+		</if>
+		order by board_no desc
+	</select>
+	
+	<select id="selectNotice" parameterType="int" resultType="map">
+		select * from noticeListView
+		where board_no=#{boardNo} and boardList_no = 2000
+	</select>
+	
+	<update id="updateNotice" parameterType="boardVo">
+		update board
+		set title=#{title}, content=#{content}
+		where boardList_no=2000 and board_No=#{boardNo}
+	</update>
+	
+	<delete id="deleteNotice" parameterType="int">
+		update board
+		set delflag='Y'
+		where boardList_no=2000 and board_no=#{boardNo}
+	</delete>
+	
+	<select id="selRegdateDesc5" resultType="map">
+		select rownum, A.* from
+			(
+			    select * from noticeListview
+			    where delflag='N'
+			    order by regdate desc
+		    )A
+		<![CDATA[    
+		where rownum<=5
+		]]>	
+	</select>
+	
+	<select id="selectByEmpNo" parameterType="empSearchVo" resultType="map">
+		select *
+		from
+		(
+			select rownum as rnum, A.*
+			from
+			(
+				select * from boardListView
+				where emp_no=#{empNo}
+				<if test="searchCondition!=null and searchCondition!=''">
+				and board_name='${searchCondition}'
+				</if>
+				<if test="searchKeyword!=null and searchKeyword!=''">
+	      		and content like '%'|| #{searchKeyword} || '%'
+	      		</if>
+				and delflag='N'
+				order by regdate desc
+			)A
+		)
+		<![CDATA[
+		where rnum > #{firstRecordIndex}
+		and rnum <=  #{firstRecordIndex}+ #{recordCountPerPage}
+		]]>		
+	</select>
+	
+	<select id="gTRSearchBoard" parameterType="empSearchVo">
+		select count(*) from boardListView
+		where emp_no=#{empNo}
+		<if test="searchCondition!=null and searchCondition!=''">
+		and board_name='${searchCondition}'
+		</if>
+		<if test="searchKeyword!=null and searchKeyword!=''">
+	 	and content like '%'|| #{searchKeyword} ||'%'
+   		</if>
+		and delflag='N'
+		order by regdate desc
+	</select>
+	
+	<select id="selectPrevNotice" parameterType="int" resultType="map">
+		select * from
+			(
+		    select title,max(board_no)
+		    from noticeListView
+		    <![CDATA[
+		    where board_no<#{boardNo}
+		    ]]>
+		    and delflag='N'
+		    group by title
+		    order by max(board_no) desc
+			)
+		where rownum=1
+	</select>
+	
+	<select id="selectNextNotice" parameterType="int" resultType="map">
+		select * from
+			(
+		    select title,min(board_no)
+		    from noticelistview
+		    <![CDATA[
+		    where board_no>#{boardNo}
+		    ]]>
+		    and delflag='N'
+		    group by title
+		    order by min(board_no) asc
+		    )
+		where rownum=1
+	</select>
+	
+	<insert id="insertFAQ" parameterType="boardVo">
+		<selectKey keyProperty="boardNo" order="BEFORE" resultType="int">
+			select board_seq.nextval from dual
+		</selectKey>
+		
+		insert into board(board_no, emp_no, boardList_no, title, content)
+		values(#{boardNo}, #{empNo}, 4000, #{title}, #{content})
+	</insert>
+	
+	<select id="selectFAQ" parameterType="searchVo" resultType="boardVo">
+		select *
+		from
+		(
+			select rownum as rnum, A.*
+			from
+			(
+				select * from board
+				where boardList_no=4000
+				<if test="searchKeyword!=null and searchKeyword!=''">
+	   	 			and ${searchCondition} LIKE '%'|| #{searchKeyword} ||'%'
+	      		</if>
+	      		and delflag='N'
+				order by regdate desc
+			)A
+		)
+		<![CDATA[
+		where rnum > #{firstRecordIndex}
+		and rnum <=  #{firstRecordIndex}+ #{recordCountPerPage}
+		]]>	
+	</select>
+	
+	<select id="gTRsearchFAQ" parameterType="searchVo" resultType="int">
+		select count(*) from board
+		where boardList_no=4000
+		<if test="searchKeyword!=null and searchKeyword!=''">
+	 		and ${searchCondition} LIKE '%'|| #{searchKeyword} ||'%'
+   		</if>
+   		and delflag='N'
+		order by regdate desc
+	</select>
+	
+	<update id="updateFAQ" parameterType="boardVo">
+		update board
+		set title=#{title}, content=#{content}
+		where boardList_no=4000 and board_no=#{boardNo}
+	</update>
+	
+	<select id="selectFAQByBoardNo" parameterType="int">
+		select * from board
+		where boardList_no=4000 and board_no=#{boardNo}
+	</select>
+	
+	<update id="deleteFAQ" parameterType="int">
+		update board
+		set delflag='Y'
+		where boardList_no=4000 and board_no=#{boardNo}
+	</update>
+	
+	<select id="select24List" resultType="map">
+		select b.*,p.filename,p.originalfilename from 
+		board b left outer JOIN pds p
+		on b.board_no = p.board_no
+		where b.boardlist_no = 5000
+		and b.regdate>= sysdate -1
+		and b.delflag='N'
+		order by b.regdate desc
+	</select>
+	
+	<update id="updateAnonymousBoard" parameterType="boardVo">
+		update board
+		set title=#{title}, content=#{content}
+		where boardList_no=5000
+		and board_no=#{boardNo}
+	</update>
+	
+	<update id="deleteAnonymousBoard" parameterType="int">
+		update board
+		set delflag='Y'
+		where boardList_no=5000 and board_no=#{boardNo}
+	</update>
+	
+	<select id="AnonymousBoardByBoardNo" parameterType="int" resultType="map">
+		select b.*,e.name from board b
+		join employee e
+		on b.emp_no=e.emp_no
+		where board_no=#{boardNo}
+	</select>
+
+	<select id="searchDeptBoard" parameterType="empSearchVo" resultType="map">
+	select *
+		from
+		(
+			select rownum as rnum, A.*
+			from
+			(
+				select * from deptboardlistView
+				where boardlist_no=#{boardlistNo}
+				<if test="searchKeyword!=null and searchKeyword!=''">
+	 			and ${searchCondition} LIKE '%'|| #{searchKeyword} ||'%'
+		   		</if>
+				and delflag='N'
+				order by regdate desc
+			)A
+		)
+		<![CDATA[
+		where rnum > #{firstRecordIndex}
+		and rnum <=  #{firstRecordIndex}+ #{recordCountPerPage}
+		]]>	
+	</select>
+	
+	<select id="gTRCountDeptBoard" parameterType="empSearchVo" resultType="int">
+		select count(*) from deptboardlistView
+		where boardlist_no=#{boardlistNo}
+		<if test="searchKeyword!=null and searchKeyword!=''">
+			and ${searchCondition} LIKE '%'|| #{searchKeyword} ||'%'
+   		</if>
+		and delflag='N'
+		order by regdate desc
+	</select>
+	
+	<insert id="insertDeptBoard" parameterType="boardVo">
+		<selectKey keyProperty="boardNo" order="BEFORE" resultType="int">
+			select board_seq.nextval from dual
+		</selectKey>
+		
+		insert into board(board_no, emp_no, boardList_no, title, content)
+		values(#{boardNo}, #{empNo}, #{boardlistNo}, #{title}, #{content})
+	</insert>
+		
+	<select id="selectdeptBoard" parameterType="boardVo" resultType="map">
+		select * from deptboardlistView
+		where boardList_no =#{boardlistNo}
+		<if test="boardNo!=null and boardNo!=''">
+			and board_no=#{boardNo}
+		</if>
+	</select>
+	
+	<select id="selPrevDeptBoard" parameterType="boardVo" resultType="map">
+		select * from
+			(
+		    select title,boardlist_no,max(board_no)
+		    from deptboardlistview
+		    <![CDATA[
+		    where board_no<#{boardNo}
+		    ]]>
+		    and boardlist_no=#{boardlistNo}
+		    and delflag='N'
+		    group by title,boardlist_no
+		    order by max(board_no) desc
+			)
+		where rownum=1
+	</select>
+	
+	<select id="selNextDeptBoard" parameterType="boardVo" resultType="map">
+		select * from
+			(
+		    select title,boardlist_no,min(board_no)
+		    from deptboardlistview
+		    <![CDATA[
+		    where board_no>#{boardNo}
+		    ]]>
+		    and boardlist_no=#{boardlistNo}
+		    and delflag='N'
+		    group by title,boardlist_no
+		    order by min(board_no) asc
+		    )
+		where rownum=1
+	</select>
+	
+	<update id="updateDeptBoard" parameterType="boardVo">
+		update board
+		set title=#{title}, content=#{content}
+		where boardList_no=#{boardlistNo} and board_No=#{boardNo}
+	</update>
+	
+	<delete id="deleteDeptBoard" parameterType="boardVo">
+		update board
+		set delflag='Y'
+		where boardList_no=#{boardlistNo} and board_no=#{boardNo}
+	</delete>
+	
+	<update id="likeCountUp" parameterType="int">
+		update board
+		set likecount=likecount+1
+		where board_no=#{boardNo}
+	</update>
+	
+	<update id="likeCountDown" parameterType="int">
+		update board
+		set likecount=likecount-1
+		where board_no=#{boardNo}
+	</update>
+
+</mapper>

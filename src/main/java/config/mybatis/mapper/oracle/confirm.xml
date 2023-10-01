@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ez.gw.confirm.model.ConfirmDAO">
+	<sql id="search">
+		<trim prefix="and" prefixOverrides="AND|OR">
+			<if test="searchKeyword!=null and searchKeyword!=''">
+				and name like '%' || #{searchKeyword} || '%'
+			</if>
+			<if test="confirmDocumentNo!=null and confirmDocumentNo!=''">
+				and confirm_document_no like '%' || #{confirmDocumentNo} || '%'
+			</if>
+			<if test="confirmTitle!=null and confirmTitle!=''">
+				and confirm_title like '%' || #{confirmTitle} || '%'
+			</if>
+			<if test="documentNo!=null and documentNo!=''">
+				and document_no = #{documentNo}
+			</if>
+			<if test="confirmState!=null and confirmState!=''">
+				and confirm_state = #{confirmState}
+			</if>
+			<if test="createDate!=null and createDate!=''">
+				and trunc(create_date) = #{createDate}
+			</if>
+		</trim>
+	</sql>
+	
+	<sql id="stateSet">
+		<if test="confirmState==1">
+			<set>
+				confirm_state=2
+			</set>
+			<where>
+				confirm1=#{empNo}
+            	and confirm_document_no=#{confirmDocumentNo}
+			</where>
+		</if>
+		<if test="confirmState==3">
+			<set>
+				confirm_state=4
+			</set>
+			<where>
+				confirm2=#{empNo}
+            	and confirm_document_no=#{confirmDocumentNo}
+			</where>
+		</if>
+		<if test="confirmState==5">
+			<set>
+				confirm_state=6
+			</set>
+			<where>
+				confirm3=#{empNo}
+            	and confirm_document_no=#{confirmDocumentNo}
+			</where>
+		</if>
+		<if test="confirmState==7">
+			<set>
+				confirm_state=8
+			</set>
+			<where>
+				(select manager from confirmagreeview
+				 where confirm_document_no=#{confirmDocumentNo})=#{empNo}
+            	and confirm_document_no=#{confirmDocumentNo}
+			</where>
+		</if>
+		<if test="confirmState!=1 and confirmState!=3 and confirmState!=5 and confirmState!=7">
+			<set>
+				confirm_state=#{confirmState}
+			</set>
+			<where>
+            	confirm_document_no=#{confirmDocumentNo}
+			</where>
+		</if>
+	</sql>
+	
+	<sql id="stateSetByClick">
+		<if test="confirmState==1 or confirmState==2">
+			<set>
+				confirm_state=3, review_date=sysdate
+			</set>
+			<where>
+	            confirm_document_no=#{confirmDocumentNo}
+			</where>
+		</if>
+		<if test="confirmState==3 or confirmState==4">
+			<if test="searchKeyword!=null and searchKeyword!=''">
+				<set>
+					confirm_state=7, confirm_date=sysdate
+				</set>
+				<where>
+		            confirm_document_no=#{confirmDocumentNo}
+				</where>
+			</if>
+			<if test="searchKeyword==null or searchKeyword==''">
+				<set>
+					confirm_state=5, confirm_date=sysdate
+				</set>
+				<where>
+		            confirm_document_no=#{confirmDocumentNo}
+				</where>
+			</if>
+		</if>
+		<if test="confirmState==7 or confirmState==8">
+			<set>
+				confirm_state=5
+			</set>
+			<where>
+	            confirm_document_no=#{confirmDocumentNo}
+			</where>
+		</if>
+		<if test="confirmState==5 or confirmState==6">
+			<set>
+				confirm_state=10, complete_date=sysdate
+			</set>
+			<where>
+	            confirm_document_no=#{confirmDocumentNo}
+			</where>
+		</if>
+	</sql>
+	
+	
+	<select id="selectCountByDate" resultType="int">
+		select count(*) from confirmsview
+		where trunc(create_date) = trunc(sysdate)
+	</select>
+	
+	<insert id="insertConfirm" parameterType="confirmVo">
+		insert into confirm(confirm_document_no,confirm_title,confirm_content,emp_no,confirm1,confirm2,confirm3,document_no,start_date,end_date)
+		values(#{confirmDocumentNo},#{confirmTitle},#{confirmContent},#{empNo},#{confirm1},#{confirm2},#{confirm3},#{documentNo},#{startDate},#{endDate})
+	</insert>
+	
+	<select id="selectAllByEmpNo" parameterType="confirmVo" resultType="map">
+		select * from
+			(
+			select rownum as num, A.* from
+				(
+					select * from confirmsview
+					where emp_no=#{empNo}
+					and confirm_state not in(9)
+					and delflag='N'
+					<include refid="search"></include>
+					order by confirm_state,create_date desc
+				)A
+			)
+		<![CDATA[
+		where num>#{firstRecordIndex} 
+		and num<=#{firstRecordIndex}+#{recordCountPerPage} ]]>
+	</select>
+	
+	<select id="selectAllByAdmin" parameterType="confirmVo" resultType="map">
+		select * from
+			(
+			select rownum as num, A.* from
+				(
+					select * from confirmsview
+					where delflag='N'
+					<include refid="search"></include>
+					order by create_date desc
+				)A
+			)
+		<![CDATA[
+		where num>#{firstRecordIndex} 
+		and num<=#{firstRecordIndex}+#{recordCountPerPage} ]]>
+	</select>
+	
+	<select id="selectAllReturn" parameterType="confirmVo" resultType="map">
+		select * from
+			(
+			select rownum as num, A.* from
+				(
+					select * from confirmsview
+					where emp_no=#{empNo}
+					and confirm_state =9
+					and delflag='N'
+					<include refid="search"></include>
+					order by create_date desc
+				)A
+			)
+		<![CDATA[
+		where num>#{firstRecordIndex} 
+		and num<=#{firstRecordIndex}+#{recordCountPerPage} ]]>
+	</select>
+	
+	<select id="selectAllConfirmDocument" parameterType="confirmVo" resultType="map">
+		select * from
+			(
+			select rownum as num, A.* from
+				(
+					select * from confirmsview
+					where ((confirm1 = #{empNo} and (confirm_state = 1 or confirm_state = 2)) 
+					or (confirm2 = #{empNo} and (confirm_state = 3 or confirm_state = 4))
+					or (confirm3 = #{empNo} and (confirm_state = 5 or confirm_state = 6)))
+					and delflag='N'
+					<include refid="search"></include>
+					order by confirm_state,create_date desc
+				)A
+			)
+		<![CDATA[
+		where num>#{firstRecordIndex} 
+		and num<=#{firstRecordIndex}+#{recordCountPerPage} ]]>
+	</select>
+	
+	<select id="selectAllCompleteDocument" parameterType="confirmVo" resultType="map">
+		select * from
+			(
+			select rownum as num, A.* from
+				(
+					select * from confirmsview
+					where ((confirm1 = #{empNo} and confirm_state not in (1,2,9)) 
+					or (confirm2 = #{empNo} and confirm_state not in (1,2,3,4,9))
+					or (confirm3 = #{empNo} and confirm_state = 10))
+					and delflag='N'
+					<include refid="search"></include>
+					order by confirm_state,create_date desc
+				)A
+			)
+		<![CDATA[
+		where num>#{firstRecordIndex} 
+		and num<=#{firstRecordIndex}+#{recordCountPerPage} ]]>
+	</select>
+	
+	<select id="selectAllDeptAgree" parameterType="confirmVo" resultType="map">
+		select * from
+			(
+			select rownum as num, A.* from
+				(
+					select * from confirmagreeview
+					where manager = #{empNo}
+					and confirm_state not in(9)
+					and delflag='N'
+					<include refid="search"></include>
+					order by confirm_state,create_date desc
+				)A
+			)
+		<![CDATA[
+		where num>#{firstRecordIndex} 
+		and num<=#{firstRecordIndex}+#{recordCountPerPage} ]]>
+	</select>
+	
+	<select id="selectAllRefer" parameterType="confirmVo" resultType="map">
+		select * from
+			(
+			select rownum as num, A.* from
+				(
+					select * from confirmsview
+					where confirm_document_no in
+					(
+						select confirm_document_no from refer
+						where emp_no=#{empNo}
+						and confirm_state not in(9)
+					)
+					and delflag='N'
+					<include refid="search"></include>
+					order by create_date desc,confirm_state
+				)A
+			)
+		<![CDATA[
+		where num>#{firstRecordIndex} 
+		and num<=#{firstRecordIndex}+#{recordCountPerPage} ]]>
+	</select>
+	
+	<update id="returnConfirm" parameterType="confirmVo">
+		update confirm
+		set confirm_state=9
+		where confirm_document_no=#{confirmDocumentNo}
+	</update>
+	
+	<select id="getTotalRecord" parameterType="confirmVo" resultType="int">
+		select count(*) from confirmsview 
+		where emp_no=#{empNo}
+		and confirm_state not in(9)
+		and delflag='N'
+		<include refid="search"></include>
+	</select>
+	
+	<select id="getTotalRecordAdmin" parameterType="confirmVo" resultType="int">
+		select count(*) from confirmsview 
+		where delflag='N'
+		<include refid="search"></include>
+	</select>
+	
+	<select id="getTotalReturnRecord" parameterType="confirmVo" resultType="int">
+		select count(*) from confirmsview 
+		where emp_no=#{empNo}
+		and confirm_state =9
+		and delflag='N'
+		<include refid="search"></include>
+	</select>
+	
+	<select id="getTotalAgreeRecord" parameterType="confirmVo" resultType="int">
+		select count(*) from confirmagreeview 
+		where manager=#{empNo}
+		and confirm_state not in(9)
+		and delflag='N'
+		<include refid="search"></include>
+	</select>
+	
+	<select id="getTotalAgreeRecordMain" parameterType="confirmVo" resultType="int">
+		select count(*) from confirmagreeview 
+		where manager=#{empNo}
+		and confirm_state in(7,8)
+		and delflag='N'
+	</select>
+
+	<select id="getTotalConfirmRecord" parameterType="confirmVo" resultType="int">
+		select count(*) from confirmsview 
+		where ((confirm1 = #{empNo} and (confirm_state = 1 or confirm_state = 2)) 
+		or (confirm2 = #{empNo} and (confirm_state = 3 or confirm_state = 4))
+		or (confirm3 = #{empNo} and (confirm_state = 5 or confirm_state = 6)))
+		and delflag='N'
+		<include refid="search"></include>
+	</select>
+	
+	<select id="getTotalComplteRecord" parameterType="confirmVo" resultType="int">
+		select count(*) from confirmsview 
+		where ((confirm1 = #{empNo} and confirm_state not in (1,2,9)) 
+		or (confirm2 = #{empNo} and confirm_state not in (1,2,3,4,9))
+		or (confirm3 = #{empNo} and confirm_state = 10))
+		and delflag='N'
+		<include refid="search"></include>
+	</select>
+	
+	<select id="getTotalReferRecord" parameterType="confirmVo" resultType="int">
+		select count(*) from confirmsview 
+		where confirm_document_no in
+			(
+				select confirm_document_no from refer
+				where emp_no=#{empNo}
+			)
+		and confirm_state not in(9)
+		and delflag='N'
+		<include refid="search"></include>
+	</select>
+	
+	<select id="selectConfirmDocument" parameterType="string" resultType="map">
+		select * from confirmsview
+		where confirm_document_no=#{confirmDocumentNo}
+	</select>
+	
+	<select id="selectDeptAgree" parameterType="string" resultType="map">
+		select * from confirmagreeview
+		where confirm_document_no = #{confirmDocumentNo}
+	</select>
+	
+	<update id="updateConfirmState" parameterType="confirmVo">
+		update confirm
+		<include refid="stateSet"></include>
+	</update>
+	
+	<update id="updateConfirmStateByClick" parameterType="confirmVo">
+		update confirm
+		<include refid="stateSetByClick"></include>
+	</update>
+	
+	<update id="updateConfirm" parameterType="confirmVo">
+		update confirm
+		set confirm_title=#{confirmTitle},confirm_content=#{confirmContent},update_date=sysdate,
+			review_date=null,confirm_date=null,complete_date=null,start_date=#{startDate},
+			end_date=#{endDate},confirm_state=1,document_no=#{documentNo},confirm1=#{confirm1},
+			confirm2=#{confirm2},confirm3=#{confirm3}
+		where confirm_document_no=#{confirmDocumentNo}
+	</update>
+	
+	<update id="updateConfirmDelFlag" parameterType="string">
+		update confirm
+		set delflag='Y'
+		where confirm_document_no=#{confirmDocumentNo}
+	</update>
+	
+	<select id="searchByDocumentFormNo" parameterType="int" resultType="int">
+		select count(*) from confirm
+		where document_no=#{documentNo}
+		and delflag='N'
+	</select>
+	
+	<select id="selectConfirmList5" parameterType="int" resultType="map">
+		select * from confirmsview
+    	where emp_no=#{empNo}
+    	<![CDATA[
+    	and rownum<6
+    	]]>
+    	order by create_date desc
+	</select>
+</mapper>

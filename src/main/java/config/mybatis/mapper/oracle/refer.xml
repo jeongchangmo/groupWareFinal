@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ez.gw.refer.model.ReferDAO">
+	<insert id="insertRefer" parameterType="referVo">
+		<selectKey keyProperty="referNo" resultType="int" order="BEFORE">
+			select refer_seq.nextval from dual
+		</selectKey>
+		insert into refer(refer_no,confirm_document_no,emp_no)
+		values(#{referNo},#{confirmDocumentNo},#{empNo})
+	</insert>
+	
+	<select id="selectEmpNoByConfirmNo" parameterType="string" resultType="int">
+		select emp_no from refer
+		where confirm_document_no=#{confirmDocumentNo}
+	</select>
+	
+	<delete id="deleteRefer" parameterType="string" >
+		delete from refer
+		where confirm_document_no=#{confirmDocumentNo}
+	</delete>
+</mapper>
